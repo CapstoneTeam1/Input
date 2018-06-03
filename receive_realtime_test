@@ -106,73 +106,71 @@ app.config['UPLOAD_FOLDER'] = './upload'
 app.config['DEBUG']=True
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 * 10
 
-@app.route("/")
-def hello():
-    p = pyaudio.PyAudio()
-    stream = p.open(format = p.get_format_from_width(WIDTH),
-                   channels = CHANNELS,
-                   rate = RATE,
-                   output = True,
-                   frames_per_buffer = CHUNK)
 
-    serverSocket = socket(AF_INET, SOCK_STREAM)
-    serverSocket.bind(ADDR)
+p = pyaudio.PyAudio()
+stream = p.open(format = p.get_format_from_width(WIDTH),
+               channels = CHANNELS,
+               rate = RATE,
+               output = True,
+               frames_per_buffer = CHUNK)
+serverSocket = socket(AF_INET, SOCK_STREAM)
+serverSocket.bind(ADDR)
+print("Server start")
+serverSocket.listen(1)
+clientSocket, client_addr = serverSocket.accept()
+print('connected by', client_addr)
 
-    print("Server start")
-    serverSocket.listen(1)
-    clientSocket, client_addr = serverSocket.accept()
-    print('connected by', client_addr)
+data = clientSocket.recv(CHUNK)
 
-    data = clientSocket.recv(CHUNK)
+i = 1
+print('data receive')
+while data != '':
+    stream.write(data)
 
-    i = 1
-    print('data receive')
-    while data != '':
-        stream.write(data)
+    try:
+        data = clientSocket.recv(CHUNK)
+        #print('%d receive' %len(data))
+    except Exception as e:
+        print(e)
+        clientSocket.close
+        break
+
+    if i % (int(RATE/1024*4*WIDTH)) == 0 :
+        print( str(i/(int(RATE/1024))) +"sec")
 
         try:
-            data = clientSocket.recv(CHUNK)
-            #print('%d receive' %len(data))
+            print("wave open")
+            wf = wave.open("./wav/%03d_sec.wav"%((i/(int(RATE/1024)))),'wb')
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(p.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))
+            print("wave closed")
+            wf.close()
+            upload_file(wf)
+            # clientSocket.send("that is %d framse"%(i))
+            frames =[]
         except Exception as e:
             print(e)
-            clientSocket.close
-            break
+            clientSocket.close()
+    i= i+1
+    frames.append(data)
 
-        if i % (int(RATE/1024*4*WIDTH)) == 0 :
-            print( str(i/(int(RATE/1024))) +"sec")
+wf = wave.open(WAVE_OUTPUT_FILE,'wb')
+wf.setnchannels(CHANNELS)
+wf.setsampwidth(p.get_sample_size(FORMAT))
+wf.setframerate(RATE)
+wf.writeframes(b''.join(frames))
+wf.close()
 
-            try:
-                print("wave open")
-                wf = wave.open("./wav/%03d_sec.wav"%((i/(int(RATE/1024)))),'wb')
-                wf.setnchannels(CHANNELS)
-                wf.setsampwidth(p.get_sample_size(FORMAT))
-                wf.setframerate(RATE)
-                wf.writeframes(b''.join(frames))
-                print("wave closed")
-                wf.close()
-                # clientSocket.send("that is %d framse"%(i))
-                frames =[]
-            except Exception as e:
-                print(e)
-                clientSocket.close()
-        i= i+1
-        frames.append(data)
+stream.stop_stream()
+stream.close()
+p.terminate()
+clientSocket.close() #소켓 종료
+serverSocket.close()
 
-    wf = wave.open(WAVE_OUTPUT_FILE,'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+print('close')
 
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
-    clientSocket.close() #소켓 종료
-    serverSocket.close()
-
-    print('close')
-    return "hello!"
 
 
 @app.route('/uploads')
