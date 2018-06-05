@@ -1,0 +1,38 @@
+# -*- coding: utf-8 -*-
+
+import socket
+import time
+import random
+
+HOST = ''
+PORT = 5000
+ADDR = (HOST, PORT)
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(ADDR)
+server_socket.listen(1)
+print("TCPServer Waiting for client on port 5000")
+
+while True:
+    client_socket, address = server_socket.accept()
+    print("I got a connection from ", address)
+
+    if True:
+        for kk in range(10):
+            sstr = ""
+            fix = random.randrange(1,6) - 1 # 1,2,3,4,5
+            list1 = [0,0,0,0,0]
+            list1[fix] = 100
+            for i in range(5):
+                sstr = sstr + str(list1[i])
+                if i!=4: sstr = sstr + ','
+            print(sstr)
+            #print(type(sstr))
+            client_socket.sendall(sstr.encode('utf-8'))
+            time.sleep(5)
+            print('waiting............')
+        
+        client_socket.close()
+        print('Socket closed')
+    else:
+        client_socket.close()
+        print('Socket closed')
