@@ -98,20 +98,10 @@ sess.run(tf.global_variables_initializer())
 saver = tf.train.Saver() # 파일을 불러온다
 saver.restore(sess, "./mymodel.ckpt")
 
-# 플래스크 앱 생성
-app = Flask(__name__)
-# 업로드 폴더 설정
-app.config['UPLOAD_FOLDER'] = './upload'
-# 최대 업로드 설정a
-app.config['DEBUG']=True
-app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 * 10
 
-
-def upload_file(file, filename):
-    if file :
-        #filename = file.filename
+def upload_file(filename):
+    if True :
         audio_file=os.path.join("", filename)
-        #file.save(audio_file)
         mfccs = extract_feature(audio_file)
         np.array(mfccs)
         print("mfcc len : " +str(mfccs.size))
@@ -151,19 +141,10 @@ def upload_file(file, filename):
         print(index)
         #index = 0
         #
-        return jsonify(classification=index.tolist(),prob=ans_fin.tolist())
-        return '''
-        <!doctype html>
-            <title>Upload new File</title>
-            <h1>Upload new File</h1>
-        <form action="" method=post enctype=multipart/form-data>
-        <p><input type=file name=file>
-        <input type=submit value=Upload>
-        </form>
-        '''
-
+        #return jsonify(classification=index.tolist(),prob=ans_fin.tolist())
+        
 rf = wave.open("rain.wav",'rb')
-upload_file(rf,"rain.wav")
+upload_file("rain.wav")
 rf.close()
 print('close_end@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
