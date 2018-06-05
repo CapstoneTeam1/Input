@@ -21,7 +21,7 @@ import pyaudio
 from socket import *
 from select import *
 
-CHUNK = 1024
+CHUNK = 3200
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
@@ -166,22 +166,22 @@ i = 1
 print('data receive')
 while data != '':
     stream.write(data)
-
     try:
         data = clientSocket.recv(CHUNK)
-        #print('%d receive' %len(data))
+        print(len(data))
+
     except Exception as e:
         print(e)
         clientSocket.close
         break
 
-    if i % (int(RATE/1024*4*WIDTH)) == 0 :
-        print( str(i/(int(RATE/1024))) +"sec")
+    if i % 50 == 0 :
+        print( str(i/10) +"sec")
 
         try:
             print("wave open")
-            filename ="./wav/%03d_sec.wav"%((i/(int(RATE/1024))))
-            wf = wave.open("./wav/%03d_sec.wav"%((i/(int(RATE/1024)))),'wb')
+            filename ="./wav/%03d_sec.wav"%((i/10))
+            wf = wave.open("./wav/%03d_sec.wav"%((i/10)),'wb')
             wf.setnchannels(CHANNELS)
             wf.setsampwidth(p.get_sample_size(FORMAT))
             wf.setframerate(RATE)
